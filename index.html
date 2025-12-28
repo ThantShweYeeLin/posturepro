@@ -355,6 +355,25 @@
     function render(){ var records=getRecords(); var cnt=document.getElementById('buy-tracker-count'); if(cnt) cnt.textContent='people in waiting list: '+records.length; var list=document.getElementById('buy-tracker-list'); if(list) list.innerHTML = (records.length? records.map(formatRecord).join('') : '<div style="color:#9CA3AF;padding:6px">No clicks yet</div>'); }
 
     document.addEventListener('DOMContentLoaded', function(){
+      // Periodically refresh shared records from server so admin panel shows global counts
+      function fetchRemoteRecords(){
+        fetch('/.netlify/functions/get-neon')
+          .then(function(res){ if(!res.ok) throw new Error('Fetch failed'); return res.json(); })
+          .then(function(rows){
+            // normalize rows into the same format used by localStorage
+            var records = rows.map(function(r){ return { name: r.name||'', email: r.email||'', t: new Date(r.created_at).getTime(), page: r.page||'' }; });
+            try{ localStorage.setItem('buyNowClicks', JSON.stringify(records)); }catch(e){}
+            render();
+          }).catch(function(err){
+            // silently ignore network errors
+            console.warn('Could not fetch remote records', err);
+          });
+      }
+
+      // fetch remote records on load and every 10s
+      fetchRemoteRecords();
+      setInterval(fetchRemoteRecords, 10000);
+
       // Attach listeners to buttons that contain "Buy Now"
       document.querySelectorAll('button').forEach(function(btn){
         if(/\b(?:Buy Now|PreOrder Now|PreOrder|Pre-Order Now|Pre-Order)\b/i.test((btn.textContent||'').trim())){
