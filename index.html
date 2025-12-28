@@ -367,7 +367,7 @@
               var payload = { name: name.trim(), email: email.trim(), page: location.pathname };
 
               // Try posting to Netlify function which writes to MongoDB Atlas.
-              fetch('/api/track-mongo', {
+              fetch('/.netlify/functions/track-mongo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
