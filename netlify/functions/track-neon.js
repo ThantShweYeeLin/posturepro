@@ -1,6 +1,9 @@
-const { createPool } = require('@neondatabase/serverless');
+const { Pool } = require('pg');
 
-const pool = createPool(process.env.NEON_DATABASE_URL);
+const pool = new Pool({
+  connectionString: process.env.NEON_DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
@@ -13,17 +16,12 @@ exports.handler = async function (event) {
     const email = body.email || null;
     const page = body.page || null;
 
-    const client = await pool.connect();
-    try {
-      await client.query(
-        'INSERT INTO clicks (name, email, page, created_at) VALUES ($1, $2, $3, now())',
-        [name, email, page]
-      );
-    } finally {
-      client.release();
-    }
+    const res = await pool.query(
+      'INSERT INTO clicks (name, email, page, created_at) VALUES ($1, $2, $3, now()) RETURNING id',
+      [name, email, page]
+    );
 
-    return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true, id: res.rows[0].id }) };
   } catch (err) {
     console.error('track-neon error', err);
     return { statusCode: 500, body: String(err) };

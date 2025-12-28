@@ -1,6 +1,9 @@
-const { createPool } = require('@neondatabase/serverless');
+const { Pool } = require('pg');
 
-const pool = createPool(process.env.NEON_DATABASE_URL);
+const pool = new Pool({
+  connectionString: process.env.NEON_DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') {
@@ -8,13 +11,8 @@ exports.handler = async function (event) {
   }
 
   try {
-    const client = await pool.connect();
-    try {
-      const res = await client.query('select id, name, email, page, created_at from clicks order by created_at desc limit 1000');
-      return { statusCode: 200, body: JSON.stringify(res.rows) };
-    } finally {
-      client.release();
-    }
+    const res = await pool.query('select id, name, email, page, created_at from clicks order by created_at desc limit 1000');
+    return { statusCode: 200, body: JSON.stringify(res.rows) };
   } catch (err) {
     console.error('get-neon error', err);
     return { statusCode: 500, body: String(err) };
