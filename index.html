@@ -364,8 +364,24 @@
             try{
               var name = prompt('Enter your name (optional):') || '';
               var email = prompt('Enter your email (optional):') || '';
-              var rec = { name: name.trim(), email: email.trim(), t: Date.now(), page: location.pathname };
-              var records = getRecords(); records.push(rec); saveRecords(records); render();
+              var payload = { name: name.trim(), email: email.trim(), page: location.pathname };
+
+              // Try posting to Netlify function which writes to MongoDB Atlas.
+              fetch('/.netlify/functions/track-mongo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              }).then(function(res){
+                // keep local UI in sync regardless of server response
+                var rec = { name: payload.name, email: payload.email, t: Date.now(), page: payload.page };
+                var records = getRecords(); records.push(rec); saveRecords(records); render();
+                if(!res.ok) console.warn('Server returned non-OK status for tracking', res.status);
+              }).catch(function(err){
+                // fallback to local-only storage when server fails
+                console.warn('Failed to send click to server, saved locally', err);
+                var rec = { name: payload.name, email: payload.email, t: Date.now(), page: payload.page };
+                var records = getRecords(); records.push(rec); saveRecords(records); render();
+              });
             }catch(err){ console.error('Buy tracker error', err); }
           });
         }
