@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "mongodb": "^5.9.0"
+    "mongodb": "^5.9.0",
+    "@neondatabase/serverless": "^1.2.0"
   }
 }

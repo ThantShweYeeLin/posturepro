@@ -366,8 +366,8 @@
               var email = prompt('Enter your email (optional):') || '';
               var payload = { name: name.trim(), email: email.trim(), page: location.pathname };
 
-              // Try posting to Netlify function which writes to MongoDB Atlas.
-              fetch('/.netlify/functions/track-mongo', {
+              // Try posting to Netlify function which writes to Neon (Postgres).
+              fetch('/.netlify/functions/track-neon', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
