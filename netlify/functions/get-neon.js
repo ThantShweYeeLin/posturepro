@@ -1,8 +1,10 @@
 const { Pool } = require('pg');
 
+const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || '';
+const useSsl = Boolean(connectionString && /sslmode=require|ssl=true|:5432\/.+sslmode=require/i.test(connectionString));
 const pool = new Pool({
-  connectionString: process.env.NEON_DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  connectionString: connectionString || undefined,
+  ssl: useSsl ? { rejectUnauthorized: false } : false
 });
 
 exports.handler = async function (event) {

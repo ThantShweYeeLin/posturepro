@@ -343,16 +343,31 @@
 
   <script>
   (function(){
-    function getRecords(){ try { return JSON.parse(localStorage.getItem('buyNowClicks')||'[]'); } catch(e){ return []; } }
-    function saveRecords(r){ localStorage.setItem('buyNowClicks', JSON.stringify(r)); }
+    // pending local-only records when server is unreachable
+    function getPending(){ try { return JSON.parse(localStorage.getItem('buyNowPending')||'[]'); } catch(e){ return []; } }
+    function savePending(r){ localStorage.setItem('buyNowPending', JSON.stringify(r)); }
+
+    // remoteRecords is authoritative source (database)
+    var remoteRecords = [];
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }
+
     function formatRecord(rec){
       var name = rec.name && rec.name.length? rec.name : '—';
       var email = rec.email && rec.email.length? rec.email : 'no email';
-      var time = new Date(rec.t).toLocaleString();
-      return '<div style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.04)"><div style="font-weight:600">'+escapeHtml(name)+'</div><div style="color:#9CA3AF;font-size:12px">'+escapeHtml(email)+' · '+escapeHtml(time)+'</div></div>';
+      var timeVal = rec.created_at || rec.t || rec.createdAt || rec.timestamp || rec.time || null;
+      var time = timeVal ? new Date(timeVal).toLocaleString() : '';
+      return '<div style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.04)"><div style="font-weight:600">'+escapeHtml(name)+'</div><div style="color:#9CA3AF;font-size:12px">'+escapeHtml(email)+(time? ' · '+escapeHtml(time):'')+'</div></div>';
     }
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-    function render(){ var records=getRecords(); var cnt=document.getElementById('buy-tracker-count'); if(cnt) cnt.textContent='people in waiting list: '+records.length; var list=document.getElementById('buy-tracker-list'); if(list) list.innerHTML = (records.length? records.map(formatRecord).join('') : '<div style="color:#9CA3AF;padding:6px">No clicks yet</div>'); }
+
+    function render(){
+      var cnt=document.getElementById('buy-tracker-count');
+      var list=document.getElementById('buy-tracker-list');
+      if(!list || !cnt) return;
+      // show only server-saved records (remoteRecords)
+      cnt.textContent = 'people in waiting list: '+ remoteRecords.length;
+      list.innerHTML = (remoteRecords.length? remoteRecords.map(formatRecord).join('') : '<div style="color:#9CA3AF;padding:6px">No clicks yet</div>');
+    }
 
     document.addEventListener('DOMContentLoaded', function(){
       // Periodically refresh shared records from server so admin panel shows global counts
@@ -360,13 +375,13 @@
         fetch('/.netlify/functions/get-neon')
           .then(function(res){ if(!res.ok) throw new Error('Fetch failed'); return res.json(); })
           .then(function(rows){
-            // normalize rows into the same format used by localStorage
-            var records = rows.map(function(r){ return { name: r.name||'', email: r.email||'', t: new Date(r.created_at).getTime(), page: r.page||'' }; });
-            try{ localStorage.setItem('buyNowClicks', JSON.stringify(records)); }catch(e){}
+            // normalize rows into consistent format
+            remoteRecords = rows.map(function(r){ return { name: r.name||'', email: r.email||'', created_at: r.created_at || r.createdAt || r.t || null, page: r.page||'', id: r.id||r._id||null }; });
             render();
           }).catch(function(err){
             // silently ignore network errors
             console.warn('Could not fetch remote records', err);
+            // leave remoteRecords as-is (so UI still shows last known DB state)
           });
       }
 
@@ -385,21 +400,26 @@
               var email = prompt('Enter your email (optional):') || '';
               var payload = { name: name.trim(), email: email.trim(), page: location.pathname };
 
-              // Try posting to Netlify function which writes to Neon (Postgres).
+              // POST to server; on success update remoteRecords immediately
               fetch('/.netlify/functions/track-neon', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
               }).then(function(res){
-                // keep local UI in sync regardless of server response
-                var rec = { name: payload.name, email: payload.email, t: Date.now(), page: payload.page };
-                var records = getRecords(); records.push(rec); saveRecords(records); render();
-                if(!res.ok) console.warn('Server returned non-OK status for tracking', res.status);
+                if(!res.ok) throw new Error('Server error');
+                return res.json();
+              }).then(function(body){
+                // server stored the click; append to remoteRecords and render
+                var rec = { name: payload.name, email: payload.email, created_at: new Date().toISOString(), page: payload.page, id: body.id || null };
+                remoteRecords.unshift(rec);
+                render();
               }).catch(function(err){
-                // fallback to local-only storage when server fails
-                console.warn('Failed to send click to server, saved locally', err);
+                // fallback: save to local pending queue only; do not show in admin panel
+                console.warn('Failed to send click to server, saved to pending', err);
                 var rec = { name: payload.name, email: payload.email, t: Date.now(), page: payload.page };
-                var records = getRecords(); records.push(rec); saveRecords(records); render();
+                var pending = getPending(); pending.push(rec); savePending(pending);
+                // optionally notify user
+                alert('Your request was saved locally and will be retried by the server when available.');
               });
             }catch(err){ console.error('Buy tracker error', err); }
           });

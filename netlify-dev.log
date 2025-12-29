@@ -1,0 +1,81 @@
+⬥ Injecting environment variable values for all scopes
+⬥ Ignored general context env var: LANG (defined in process)
+⬥ Injected .env file env vars: NEON_DATABASE_URL
+⬥ No app server detected. Using simple static server
+⬥ Unable to determine public folder to serve files from. Using current working directory
+⬥ Setup a netlify.toml file with a [dev] section to specify your dev server settings.
+⬥ See docs at: https://docs.netlify.com/cli/local-development/#project-detection
+⬥ Running static server from "techstartup"
+⬥ Setting up local dev server
+
+⬥ Static server listening to 3999
+⬥ Loaded function get-neon
+⬥ Loaded function track-neon
+⬥ Loaded function track-mongo
+
+   ╭─────────────────────── ⬥  ────────────────────────╮
+   │                                                   │
+   │   Local dev server ready: http://localhost:8888   │
+   │                                                   │
+   ╰───────────────────────────────────────────────────╯
+
+(node:88356) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2710 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2387 ms.
+Request from ::1: POST /.netlify/functions/track-neon
+Response with status 200 in 2703 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2368 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2391 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2531 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2736 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2466 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2396 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2336 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2412 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2469 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2723 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2402 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2388 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2344 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2501 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2388 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2411 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2417 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2533 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2567 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2352 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Request from ::1: GET /.netlify/functions/get-neon
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2381 ms.
+Response with status 200 in 2327 ms.
+Request from ::1: GET /.netlify/functions/get-neon
+Response with status 200 in 2462 ms.
+Response with status 200 in 2516 ms.
+⬥ Reloading function track-neon...
+⬥ Reloading function get-neon...
+⬥ Reloaded function get-neon
+⬥ Reloaded function track-neon
